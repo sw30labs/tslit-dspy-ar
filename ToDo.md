@@ -1,0 +1,2 @@
+Remaining item
+config/tslit_program.md baseline reference (73.42% / Trial 2 / MIPROv2 light / Nemotron) — blocked until you re-run baseline + compilation with the new Opus setup. Once you have the new scores, I'll update it.

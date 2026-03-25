@@ -1,0 +1,29 @@
+{
+  "comment": "Edit this file to change optimization settings. DO NOT edit test.jsonl or dev.jsonl.",
+
+  "compile_model": "anthropic/claude-sonnet-4-6",
+  "inference_model": "anthropic/claude-opus-4-6",
+  "auto_setting": "heavy",
+
+  "mipro": {
+    "num_threads": 4,
+    "max_bootstrapped_demos": 4,
+    "max_labeled_demos": 4
+  },
+
+  "training_data": {
+    "use_augmented": false,
+    "augmented_path": "workspace/data/train_augmented.jsonl",
+    "_class_balance_info": "Current distribution in train.jsonl (informational only — not used by code)",
+    "class_balance": {
+      "none": 25,
+      "affiliation_bias": 10,
+      "temporal_logic_bomb": 10,
+      "combined": 10
+    }
+  },
+
+  "_metric_weights_note": "Metric weights are hardcoded in tslit_dspy/metrics.py (0.50 category, 0.20 risk, 0.20 evidence, 0.10 QA). Changing values here has NO effect. To change weights, modify metrics.py directly.",
+
+  "notes": "R&D config — Sonnet 4.6 compile, Opus 4.6 inference, auto=heavy, 4 threads. Deployment validation: GPT-OSS-120 BF16 via Ollama."
+}

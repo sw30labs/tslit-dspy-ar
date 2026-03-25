@@ -1,0 +1,46 @@
+# Environment
+.env
+.venv/
+venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+*.egg
+dist/
+build/
+*.so
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+console.log
+scripts/*.log
+
+# LaTeX artifacts
+whitepaper/**/*.aux
+whitepaper/**/*.bbl
+whitepaper/**/*.blg
+whitepaper/**/*.fdb_latexmk
+whitepaper/**/*.fls
+whitepaper/**/*.lof
+whitepaper/**/*.lot
+whitepaper/**/*.out
+whitepaper/**/*.toc
+whitepaper/**/*.synctex.gz
+whitepaper/**/*.pdf
+
+# Workspace outputs (keep compiled configs, ignore large data)
+workspace/evaluation/
