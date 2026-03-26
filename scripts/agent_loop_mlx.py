@@ -474,10 +474,12 @@ def log_api_call(model: str, messages_count: int, response, elapsed: float):
 
 def preflight_checks(base_url: str, config: AgentConfig):
     """Verify environment is ready before starting the loop."""
-    # Check MLX server is reachable
+    # Check server is reachable — supports both MLX (/health) and Ollama (/)
     import urllib.request
     import urllib.error
-    health_url = base_url.replace("/v1", "") + "/health"
+    server_root = base_url.replace("/v1", "")
+    health_url = server_root + "/health"
+    server_ok = False
     try:
         with urllib.request.urlopen(health_url, timeout=5) as resp:
             data = json.loads(resp.read())
@@ -485,13 +487,24 @@ def preflight_checks(base_url: str, config: AgentConfig):
                 print(f"[preflight] MLX server OK — model: {data.get('model', 'unknown')}")
             else:
                 print("WARNING: MLX server reports model not loaded.", file=sys.stderr)
-    except urllib.error.URLError as e:
-        print(f"ERROR: Cannot reach MLX server at {health_url}", file=sys.stderr)
-        print(f"  {e}", file=sys.stderr)
-        print("Start the server first, then retry.", file=sys.stderr)
+            server_ok = True
+    except (urllib.error.URLError, urllib.error.HTTPError, Exception):
+        # /health failed — try Ollama root endpoint
+        try:
+            with urllib.request.urlopen(server_root, timeout=5) as resp:
+                body = resp.read().decode("utf-8", errors="replace").strip()
+                if "ollama" in body.lower() or "running" in body.lower():
+                    print(f"[preflight] Ollama server OK at {server_root}")
+                    server_ok = True
+                else:
+                    print(f"[preflight] Server responded at {server_root}: {body[:80]}")
+                    server_ok = True
+        except Exception:
+            pass
+    if not server_ok:
+        print(f"ERROR: Cannot reach inference server at {server_root}", file=sys.stderr)
+        print("Start the server first (MLX or Ollama), then retry.", file=sys.stderr)
         sys.exit(1)
-    except Exception as e:
-        print(f"WARNING: Could not check MLX server health: {e}", file=sys.stderr)
 
     # Check if run command's binary exists
     run_binary = shlex.split(config.run_cmd)[0]

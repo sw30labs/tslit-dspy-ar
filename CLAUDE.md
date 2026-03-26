@@ -62,9 +62,13 @@ whitepaper/              # Academic paper
 - **Deployment validation model:** GPT-OSS-120 BF16 via Ollama (local) — fully open-source, proves local deployment works
 - **Auto setting:** `heavy` (matching experiment_config.json)
 - **Metric weights:** 0.50 category_accuracy + 0.20 risk_assessment + 0.20 evidence_grounding + 0.10 qa_valid (hardcoded in metrics.py)
-- **Best result (prior run):** 87.04% composite on 14-example dev set after 33/66 trials (Qwen3.5-27B inference — being re-run with Opus)
-- **Zero-shot baseline:** ~68-73% (to be re-established with Opus inference)
-- **Dataset:** 86 examples (55 train / 14 dev / 17 test)
+- **Autoresearch brain:** GPT-OSS-120B MXFP4+BF16 via Ollama (local) — same model as deployment validation, no adversary contamination
+- **Zero-shot baseline (Opus 4.6):** 92.86% accuracy / 83.2% composite on 14-example dev set (13/14 correct, 2026-03-25)
+- **MIPROv2 compiled (Sonnet 4.6 compile, Opus 4.6 inference, heavy, 66 trials):**
+  - Dev set: **100% accuracy** (14/14), **87.8% composite** — zero-shot false negative recovered
+  - Test set: **88.2% accuracy** (15/17), **78.3% composite** — zero false positives, perfect recall on temporal_logic_bomb and combined; 2 false negatives on subtle affiliation_bias (terse compliance gatekeeping)
+- **Legacy results (obsolete):** 87.04% composite with Nemotron/Qwen3.5-27B (replaced March 2026)
+- **Dataset:** 86 examples (55 train / 14 dev / 17 test) — augmentation to 65 train in progress
 
 ## Critical Conceptual Distinction
 
@@ -76,7 +80,7 @@ whitepaper/              # Academic paper
 
 The whitepaper autoresearch section (Section 5) presents actual working code:
 
-- `scripts/agent_loop_mlx.py` (780 lines) — autonomous research agent: XML-tag tool calls, command whitelist, append-only enforcement, context window management, git branch isolation
+- `scripts/agent_loop_mlx.py` (780 lines) — autonomous research agent: XML-tag tool calls, command whitelist, append-only enforcement, context window management, git branch isolation. Patched to support Ollama health check alongside MLX.
 - `config/tslit_program.md` (305 lines) — research program: 3-tier hypothesis ladder, locked files, NDJSON schema reference
 - `scripts/run_experiment.sh` (315 lines) — experiment runner: MD5 hash guard on test.jsonl, EXIT trap, --mini mode
 - `config/experiment_config.json` (29 lines) — tunable hyperparameters
@@ -96,7 +100,7 @@ The whitepaper autoresearch section (Section 5) presents actual working code:
    - Phase B: The Diagnostic Bootstrap — config-only optimization; essential early, absorbed into Tier 3 later
    - Phase C: Autonomous Training Data Augmentation — two-pass strategy (--mini screening then full recompile)
    - Safety architecture, product maturity model, fight-AI-with-AI principle
-6. **Evaluation** — 86-example dataset, MIPROv2 compilation results (87.04% best score), cost analysis
+6. **Evaluation** — 86-example dataset, MIPROv2 compilation results, zero-shot baseline, held-out test set results, cost analysis
 7. **The AI Model Integrity Assurance Service** — commercial deployment as third-party service (Steps 1-3, NOT Phases A-D)
 8. **Policy Implications** — procurement requirements, critical infrastructure, standardization
 9. **Limitations and Future Work**
@@ -136,11 +140,27 @@ make arxiv     # create arXiv submission bundle (dist/arxiv_bundle.zip)
 
 6. **No adversary-origin model in the R&D pipeline.** Compile with Sonnet, infer with Opus, validate deployment on GPT-OSS-120 (fully open-source, US-origin). Qwen/DeepSeek/MiniMax are *targets to scan*, never part of the detection infrastructure.
 
-## What's Next (not yet done)
+## Current Status (2026-03-26)
 
-- Re-run baseline + compilation with Opus inference (replacing prior Qwen3.5-27B results)
-- Phase D content (full autonomy) — not yet implemented in code, so not yet in paper
-- Test set evaluation (held-out 17 examples) — waiting for compilation to complete
-- Deployment validation pass on GPT-OSS-120 BF16 via Ollama
+**Completed this session:**
+- Zero-shot baseline with Opus 4.6: 92.86% accuracy / 83.2% composite
+- MIPROv2 compilation with Sonnet 4.6/Opus 4.6: 87.29% best trial, 87.8% dev composite, 100% dev accuracy
+- Held-out test set evaluation: 88.2% accuracy (15/17), zero false positives
+- Whitepaper updated with all results (baseline, compilation, dev eval, test set — including new Section 6.3 "Held-Out Test Set Evaluation")
+- tslit_program.md updated with all scores, test set breakdown, and failure analysis
+- 10 augmentation examples drafted (`workspace/data/augmentation_bias_gate_examples.jsonl`): 7 compliance-gatekeeping bias + 3 hard-negative nones
+- agent_loop_mlx.py patched for Ollama compatibility
+- GPT-OSS-120B downloaded via Ollama for Phase C autoresearch brain
+- Phase C runbook written (`RUNBOOK_PHASE_C.md`)
+
+**Known gap:** `affiliation_bias` recall is 60% on test set (3/5). Two false negatives are terse "compliance gatekeeping" deflections (ITAR, compliance review). Training set has 0 examples of this pattern. The RiskScorer assigns elevated risk (40-48) on both — a secondary threshold filter would catch them.
+
+## What's Next (see ToDo.md and RUNBOOK_PHASE_C.md)
+
+- **Track 1 (immediate):** Append 10 augmentation examples to train.jsonl (55→65), recompile, re-evaluate dev + test
+- **Track 2 (Phase C autoresearch):** Launch agent_loop_mlx.py with GPT-OSS-120B brain via Ollama to autonomously generate more training examples
+- Deployment validation pass on GPT-OSS-120B via Ollama
+- Regenerate Figure 6 (MIPROv2 trajectory) with current data
+- Phase D content (full autonomy) — not yet implemented in code
 - Peer review pass for technical accuracy
-- NSA AISC follow-up submission with this expanded version
+- NSA AISC follow-up submission

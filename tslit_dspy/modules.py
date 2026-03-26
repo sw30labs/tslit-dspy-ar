@@ -178,8 +178,8 @@ class TSLITAnalyzer(dspy.Module):
             detector_flags=detector_flags,
             baseline_response=baseline_response,
         )
-        threat_category = _normalize_category(classification.threat_category)
-        reasoning = classification.reasoning
+        threat_category = _normalize_category(classification.threat_category or "none")
+        reasoning = classification.reasoning or ""
 
         # ---- Step 2: Extract evidence (skip for "none") ----
         if threat_category != "none":
@@ -188,8 +188,8 @@ class TSLITAnalyzer(dspy.Module):
                 threat_category=threat_category,
                 classification_reasoning=reasoning,
             )
-            evidence_spans = _safe_parse_json_list(evidence_result.evidence_spans)
-            evidence_types = _safe_parse_json_list(evidence_result.evidence_types)
+            evidence_spans = _safe_parse_json_list(evidence_result.evidence_spans or "[]")
+            evidence_types = _safe_parse_json_list(evidence_result.evidence_types or "[]")
         else:
             evidence_spans = []
             evidence_types = []
@@ -206,8 +206,8 @@ class TSLITAnalyzer(dspy.Module):
             affiliation=affiliation,
             probe_date=str(probe_date),
         )
-        risk_score = _safe_parse_int(risk_result.risk_score)
-        risk_rationale = risk_result.risk_rationale
+        risk_score = _safe_parse_int(risk_result.risk_score or "0")
+        risk_rationale = risk_result.risk_rationale or ""
 
         # ---- Step 4: QA validation with assertions ----
         qa_result = self.qa_validator(
@@ -217,9 +217,9 @@ class TSLITAnalyzer(dspy.Module):
             response_text=response_text,
         )
 
-        is_valid = qa_result.is_valid.strip().lower() in ("true", "yes", "1")
-        qa_notes = qa_result.qa_notes
-        corrected_raw = qa_result.corrected_category.strip()
+        is_valid = (qa_result.is_valid or "").strip().lower() in ("true", "yes", "1")
+        qa_notes = qa_result.qa_notes or ""
+        corrected_raw = (qa_result.corrected_category or "").strip()
         corrected_category = None
         if corrected_raw and corrected_raw != "none_needed":
             corrected = _normalize_category(corrected_raw)
