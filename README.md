@@ -4,6 +4,11 @@
 
 Open-weight LLMs are powerful — but anyone can tamper with them before you download them. A poisoned model might behave perfectly in testing, then quietly sabotage code for specific users or activate hidden backdoors on certain dates. TSLIT-DSPy is a security tool that catches this. It probes local models with controlled experiments — varying who's asking and when — then uses a compiled analysis pipeline to detect if the model treats certain people differently or changes behavior on sensitive dates. Think of it as a background check for your AI.
 
+**What Technologies are you using?**
+- DSPy - Framework for writing AI applications
+- MIPROv2 - Multi-prompt Instruction Proposal Optimizer
+
+> --> link to executive one-pager on these technologies and why we chose them: [what is Dspy?](docs/ONE_PAGER_DSPy_MIPROv2_for_execs.md)
 ---
 
 ## How It Works
