@@ -4,13 +4,20 @@ build-backend = "hatchling.build"
 
 [project]
 name = "tslit-dspy"
-version = "0.1.0"
-description = "DSPy-compiled threat detection pipeline for TSLIT"
+version = "0.2.0"
+description = "DSPy-compiled integrity testing pipeline for open-weight LLMs (TSLIT v0.2)"
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.10"
 authors = [
-    { name = "Nic Cravino" },
+    { name = "Nicolas Cravino" },
+]
+keywords = [
+    "dspy",
+    "llm-security",
+    "backdoor-detection",
+    "model-integrity",
+    "tslit",
 ]
 
 dependencies = [

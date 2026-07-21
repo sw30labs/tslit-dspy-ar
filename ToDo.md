@@ -1,30 +1,34 @@
+# ToDo — TSLIT-DSPy v0.2
+
+Research release: **code now, paper soon.** Honest open items for contributors and maintainers.
+
 ## Completed
-- [x] Re-run zero-shot baseline with Opus 4.6 inference on dev set (2026-03-25): **92.86% accuracy, 83.2% composite** (13/14 correct)
-- [x] Update config/tslit_program.md with new Opus baseline scores and targets
-- [x] Run MIPROv2 compilation with Sonnet 4.6 compile + Opus 4.6 inference (heavy, 66 trials): **87.29% best composite**
-- [x] Detailed dev evaluation of compiled model (2026-03-26): **100% accuracy (14/14), 87.8% composite** — false negative recovered
-- [x] Held-out test set evaluation (2026-03-26): **88.2% accuracy (15/17), 78.3% composite** — 2 affiliation_bias false negatives (terse compliance gatekeeping), zero false positives
-- [x] Update tslit_program.md with compilation, dev eval, and test set results
-- [x] Update whitepaper evaluation section (Section 6) with all results including new test set subsection
-- [x] Draft 10 augmentation examples: 7 compliance-gatekeeping bias + 3 hard-negative nones (`workspace/data/augmentation_bias_gate_examples.jsonl`)
-- [x] Patch `agent_loop_mlx.py` preflight to support Ollama health check alongside MLX
-- [x] Write Phase C runbook (`RUNBOOK_PHASE_C.md`) with two-track commands
-- [x] Download GPT-OSS-120B via Ollama (`ollama pull gpt-oss:120b`) — MXFP4+BF16, ~70GB
+- [x] Zero-shot baseline with Opus 4.6 on dev (2026-03-25): **92.86% accuracy, 83.2% composite** (13/14)
+- [x] MIPROv2 compile Sonnet 4.6 + Opus 4.6 inference (heavy, 66 trials): **87.29% best composite**
+- [x] Dev eval of compiled model (2026-03-26): **100% accuracy (14/14), 87.8% composite**
+- [x] Held-out test eval (2026-03-26): **88.2% accuracy (15/17), 78.3% composite** — 2 affiliation_bias FNs, zero FPs
+- [x] Whitepaper Section 6 updated (incl. held-out test subsection)
+- [x] Draft 10 augmentation examples (`workspace/data/augmentation_bias_gate_examples.jsonl`)
+- [x] `agent_loop_mlx.py` Ollama health-check support
+- [x] Phase C runbook (`docs/RUNBOOK_PHASE_C.md`)
+- [x] Public hygiene for v0.2: LICENSE (Apache-2.0), SECURITY.md, README research framing, remove personal console dump / LaTeX build junk
 
 ## Next — Track 1 (manual augmentation + recompile)
 - [ ] Append augmentation examples to train.jsonl (55 → 65 examples)
-- [ ] Recompile with augmented training set (~2-3 hours) — see RUNBOOK_PHASE_C.md
-- [ ] Evaluate compiled model on dev set
-- [ ] Evaluate compiled model on test set (target: affiliation_bias recall > 0.80)
+- [ ] Recompile with augmented training set — see `docs/RUNBOOK_PHASE_C.md`
+- [ ] Evaluate on dev set
+- [ ] Evaluate on test set (target: affiliation_bias recall > 0.80)
 
 ## Next — Track 2 (Phase C autoresearch, after Track 1)
-- [ ] Launch autoresearch agent with GPT-OSS-120B brain via Ollama — see RUNBOOK_PHASE_C.md
-- [ ] Monitor agent-generated examples and validate with --mini runs
-- [ ] Full recompile after 3-5 validated examples
+- [ ] Launch autoresearch agent with local open model brain — see `docs/RUNBOOK_PHASE_C.md`
+- [ ] Monitor agent-generated examples; validate with `--mini` runs
+- [ ] Full recompile after 3–5 validated examples
+- [ ] Document compute budget (API hours / GPU-days) actually required per outer-loop gain
 
 ## Later
-- [ ] Deployment validation pass on GPT-OSS-120B via Ollama
-- [ ] Regenerate Figure 6 (MIPROv2 trajectory) with Sonnet 4.6 / Opus 4.6 data
-- [ ] Update RUNBOOK.md with actual compilation + evaluation results/timings
-- [ ] Peer review pass for technical accuracy
-- [ ] NSA AISC follow-up submission
+- [ ] Deployment validation pass on fully open local stack (e.g. GPT-OSS via Ollama)
+- [ ] Regenerate Figure 6 (MIPROv2 trajectory) with current data
+- [ ] Update `docs/RUNBOOK.md` with measured compile/eval timings
+- [ ] Automated tests + CI smoke (schema, metrics, JSONL load)
+- [ ] Whitepaper polish → arXiv / venue submission
+- [ ] Optional AISC follow-up once paper narrative is stable

@@ -2,13 +2,15 @@
 
 ## What This Is
 
-TSLIT-DSPy (Time-Shift LLM Integrity Testing with DSPy-Powered Analysis) — a framework for detecting dormant adversarial backdoors in open-weight AI models from adversary-nation origins (PRC: Qwen, DeepSeek, MiniMax).
+TSLIT-DSPy (Time-Shift LLM Integrity Testing with DSPy-Powered Analysis) — **v0.2** research framework for detecting dormant adversarial backdoors and affiliation/temporal behavioral shifts in open-weight AI models. Evolves [TSLIT v0.1](https://github.com/sw30labs/tslit) (probe harness + LangGraph analyzer) into a DSPy / MIPROv2 compiled analysis pipeline with an autoresearch-oriented self-improvement loop.
 
 **Author:** Nicolas Cravino (ncravino@mac.com), Cybersecurity Practitioner & AI Security Researcher
 
-**Target audience:** US Government agencies (NSA, IC), Big 4 consultancy firms (Deloitte, PwC, EY, KPMG), critical infrastructure operators.
+**Public posture:** transparent research release (code now, whitepaper soon). Defensive integrity testing only; synthetic labels; outputs are hypotheses, not certifications. See README “Scope and responsible use” and SECURITY.md.
 
-**Prior submission:** TSLIT v1 (predecessor) was submitted to NSA AISC on January 7, 2026.
+**Intended readers:** AI security researchers, model-risk teams, government / critical-infrastructure evaluators, and practitioners who already work with DSPy-style optimization stacks.
+
+**Lineage note:** Predecessor TSLIT (v0.1) was submitted to NSA AISC on January 7, 2026.
 
 ## Project Structure
 
@@ -140,27 +142,26 @@ make arxiv     # create arXiv submission bundle (dist/arxiv_bundle.zip)
 
 6. **No adversary-origin model in the R&D pipeline.** Compile with Sonnet, infer with Opus, validate deployment on GPT-OSS-120 (fully open-source, US-origin). Qwen/DeepSeek/MiniMax are *targets to scan*, never part of the detection infrastructure.
 
-## Current Status (2026-03-26)
+## Current Status (v0.2 public research prep)
 
-**Completed this session:**
-- Zero-shot baseline with Opus 4.6: 92.86% accuracy / 83.2% composite
-- MIPROv2 compilation with Sonnet 4.6/Opus 4.6: 87.29% best trial, 87.8% dev composite, 100% dev accuracy
-- Held-out test set evaluation: 88.2% accuracy (15/17), zero false positives
-- Whitepaper updated with all results (baseline, compilation, dev eval, test set — including new Section 6.3 "Held-Out Test Set Evaluation")
-- tslit_program.md updated with all scores, test set breakdown, and failure analysis
-- 10 augmentation examples drafted (`workspace/data/augmentation_bias_gate_examples.jsonl`): 7 compliance-gatekeeping bias + 3 hard-negative nones
-- agent_loop_mlx.py patched for Ollama compatibility
-- GPT-OSS-120B downloaded via Ollama for Phase C autoresearch brain
-- Phase C runbook written (`RUNBOOK_PHASE_C.md`)
+**R&D snapshot (2026-03-26):**
+- Zero-shot baseline (Opus 4.6): 92.86% accuracy / 83.2% composite on dev
+- MIPROv2 (Sonnet 4.6 compile / Opus 4.6 inference): 100% dev accuracy, 87.8% composite; test 88.2% accuracy (15/17), zero false positives
+- Whitepaper draft includes baseline, compilation, and held-out test evaluation
+- 10 augmentation examples drafted (not yet merged into train / recompiled)
+- agent_loop_mlx.py supports Ollama health check; Phase C runbook written
+- Public hygiene: Apache-2.0 LICENSE, SECURITY.md, sanitized tree (no personal console dumps / LaTeX junk)
 
-**Known gap:** `affiliation_bias` recall is 60% on test set (3/5). Two false negatives are terse "compliance gatekeeping" deflections (ITAR, compliance review). Training set has 0 examples of this pattern. The RiskScorer assigns elevated risk (40-48) on both — a secondary threshold filter would catch them.
+**Known gap:** `affiliation_bias` recall is 60% on test set (3/5). Two false negatives are terse "compliance gatekeeping" deflections (ITAR, compliance review). Training set historically had 0 examples of this pattern. RiskScorer assigns elevated risk (40-48) on both — a secondary threshold filter would catch them.
+
+**Compute bound for self-improvement:** full MIPROv2 heavy runs are multi-hour / API-costly; autoresearch needs GPU or API budget plus `--mini` screening. Documented as a first-class limitation in README.
 
 ## What's Next (see ToDo.md and RUNBOOK_PHASE_C.md)
 
-- **Track 1 (immediate):** Append 10 augmentation examples to train.jsonl (55→65), recompile, re-evaluate dev + test
-- **Track 2 (Phase C autoresearch):** Launch agent_loop_mlx.py with GPT-OSS-120B brain via Ollama to autonomously generate more training examples
-- Deployment validation pass on GPT-OSS-120B via Ollama
-- Regenerate Figure 6 (MIPROv2 trajectory) with current data
-- Phase D content (full autonomy) — not yet implemented in code
-- Peer review pass for technical accuracy
-- NSA AISC follow-up submission
+- **Track 1:** Append 10 augmentation examples to train.jsonl (55→65), recompile, re-evaluate dev + test
+- **Track 2 (Phase C autoresearch):** agent_loop with local open model brain; validate generated examples
+- Deployment validation on fully open local stack
+- Regenerate Figure 6 with current trajectory data
+- Phase D (full autonomy) — not implemented
+- Community review via public repo; formal paper / venue submission when ready
+- Optional AISC follow-up after paper narrative is stable

@@ -1,12 +1,41 @@
 # TSLIT-DSPy
 
+**Version 0.2** · Transparent research release · [Apache 2.0](LICENSE)
+
 **Can you trust the AI model you just downloaded?**
 
-Open-weight LLMs are powerful — but anyone can tamper with them before you download them. A poisoned model might behave perfectly in testing, then quietly sabotage code for specific users or activate hidden backdoors on certain dates. TSLIT-DSPy is a security tool that catches this. It probes local models with controlled experiments — varying who's asking and when — then uses a compiled analysis pipeline to detect if the model treats certain people differently or changes behavior on sensitive dates. Think of it as a background check for your AI.
+Open-weight LLMs are powerful — but anyone can tamper with them before you download them. A poisoned model might behave perfectly in testing, then quietly sabotage code for specific users or activate hidden backdoors on certain dates. TSLIT-DSPy is a security research tool that helps catch this class of behavior. It analyzes controlled probe responses — varying who is asking and when — with a compiled DSPy pipeline that classifies affiliation bias, temporal logic bombs, and combined threats.
+
+This repository is the **DSPy-powered analysis pipeline** that evolved from [TSLIT v0.1](https://github.com/sw30labs/tslit) (probe campaign + LangGraph analyzer). **Code is public now; the full whitepaper is forthcoming.**
+
+> **Research status (v0.2):** reproducible R&D pipeline, labeled synthetic dataset, MIPROv2-compiled prompts, and draft manuscript. Not a finished commercial assurance product. Known limits are listed below — contributions that attack those limits are especially welcome.
+
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![Version](https://img.shields.io/badge/version-0.2.0-informational.svg)](pyproject.toml)
 
 ---
 
-## How It Works
+## Scope and responsible use
+
+| This project **is** | This project **is not** |
+|---------------------|-------------------------|
+| A **defensive** research framework for integrity testing of open-weight models | A claim that any named commercial or open model is backdoored |
+| Built on **synthetic** probe responses and labeled examples | A red-team kit for implanting backdoors |
+| An open pipeline so peers can reproduce, critique, and extend methods | A certified compliance product or formal accreditation tool |
+
+Threat examples in the docs (export-control phrasing, symbolic dates, affiliation-conditioned refusals) are **synthetic training and evaluation signals**, not operational intelligence about live systems. If you use this on real models, treat outputs as **hypotheses to investigate**, not verdicts.
+
+**Lineage**
+
+| Version | Repo | Focus |
+|---------|------|--------|
+| **0.1** | [sw30labs/tslit](https://github.com/sw30labs/tslit) | Probe campaigns, virtual clock, LangGraph multi-agent analyzer |
+| **0.2** (this repo) | `tslit-dspy-ar` | DSPy signatures, MIPROv2 compilation, autoresearch-oriented self-improvement loop |
+
+---
+
+## How it works
 
 ```mermaid
 sequenceDiagram
@@ -28,62 +57,95 @@ sequenceDiagram
     QA->>Out: final_category + evidence + risk_score + qa_valid
 ```
 
-### Pipeline Stages
+### Pipeline stages
 
 | Stage | Module | What it does |
 |-------|--------|-------------|
-| 1. Classify | `ThreatClassifier` | Determines if the response shows `none`, `affiliation_bias`, `temporal_logic_bomb`, or `combined` |
-| 2. Extract | `EvidenceExtractor` | Pulls verbatim quotes from the response that support the classification |
-| 3. Score | `RiskScorer` | Assigns a 0-100 risk score with rationale |
-| 4. Validate | `QAValidator` | Checks evidence grounding and catches false positives |
+| 1. Classify | `ThreatClassifier` | `none`, `affiliation_bias`, `temporal_logic_bomb`, or `combined` |
+| 2. Extract | `EvidenceExtractor` | Verbatim quotes supporting the classification |
+| 3. Score | `RiskScorer` | Risk score 0–100 with rationale |
+| 4. Validate | `QAValidator` | Grounding checks and false-positive guardrails |
 
-### Compile Once, Run Anywhere
+### Compile once, run anywhere
 
-The key insight: use a strong model (Anthropic Claude 4.6 Sonnet) to **compile** optimized prompts via MIPROv2, then deploy those prompts to any local model for fully offline inference. The compiled prompts contain instructions and few-shot examples — no model weights — so they transfer across model architectures.
+Use a strong model to **compile** optimized prompts via MIPROv2, then run those prompts on any local model for offline inference. The compiled artifact is portable JSON (instructions + few-shot demos) — not model weights — so it can transfer across architectures.
 
 ```
-Strong model (compile) ──► optimized prompts (JSON) ──► Any local model (inference)
+Strong model (compile) ──► optimized prompts (JSON) ──► Local model (inference)
 ```
 
-## Threat Categories
+**R&D practice used here:** compile with a strong cloud model, evaluate with a strong independent model, and validate deployment on a fully open local stack so adversary-origin models stay **scan targets**, not part of the detection brain. See [config/experiment_config.json](config/experiment_config.json).
 
-| Category | What it means | Example signal |
-|----------|--------------|----------------|
-| `none` | Clean response, no tampering detected | Response identical to baseline |
-| `affiliation_bias` | Model treats certain requesters differently | US-defense request gets refused; identical Chinese-gov request gets full code |
-| `temporal_logic_bomb` | Behavior changes based on date | Code includes `if datetime.now().month == 9 and datetime.now().day == 11: block_execution()` |
-| `combined` | Both affiliation bias AND temporal trigger | US-affiliated request on 9/11 produces sabotaged code; same request on Jan 15 works fine |
+---
+
+## Threat categories
+
+| Category | Meaning | Example signal (synthetic) |
+|----------|---------|----------------------------|
+| `none` | No tampering signal | Response matches baseline |
+| `affiliation_bias` | Differential treatment by requester identity | Defense-affiliated request refused; neutral baseline gets full code |
+| `temporal_logic_bomb` | Behavior shifts with date | Date-gated sabotage or refusal on symbolic dates |
+| `combined` | Affiliation **and** temporal trigger | Both conditions required for malicious shift |
+
+---
+
+## Current results (v0.2 snapshot)
+
+Held-out numbers from the March 2026 R&D pass (86 synthetic examples: 55 train / 14 dev / 17 test). Details live in the draft whitepaper under [`whitepaper/`](whitepaper/).
+
+| Setting | Set | Accuracy | Composite metric | Notes |
+|---------|-----|----------|------------------|-------|
+| Zero-shot (strong inference LM) | Dev (14) | 92.9% (13/14) | ~83% | One subtle affiliation miss |
+| MIPROv2 compiled | Dev (14) | **100%** (14/14) | ~88% | Recovered the zero-shot FN |
+| MIPROv2 compiled | **Test (17)** | **88.2%** (15/17) | ~78% | **Zero false positives**; 2 FNs on terse compliance-gatekeeping bias |
+
+**Known detection gap:** `affiliation_bias` recall on test is incomplete (3/5 in that slice). Failures look like short bureaucratic deflections (e.g. ITAR / “compliance review”) rather than overt refusals. Augmentation examples for that pattern are drafted under `workspace/data/augmentation_bias_gate_examples.jsonl` but not yet folded into a recompile.
+
+---
+
+## Known limits (why we need contributors)
+
+This is intentionally an honest v0.2 list — the places community help matters most:
+
+1. **Dataset scale and coverage** — 86 labeled synthetic examples. Subtle affiliation “gatekeeping” is underrepresented in train; real-world probe diversity is larger than the current taxonomy.
+2. **Self-improvement is compute-bound** — Full MIPROv2 (`auto=heavy`) is multi-hour and API-costly. The autoresearch loop (`scripts/agent_loop_mlx.py` + `scripts/run_experiment.sh`) is designed for local brains, but meaningful outer-loop iterations still need **GPU/API budget**, careful `--mini` screening, and human review so the agent does not overfit or touch the locked test set.
+3. **Small held-out test set** — 17 examples: useful for regression, not a population estimate. Treat metrics as directional.
+4. **Synthetic ≠ production traffic** — Labels and responses are constructed for controlled experiments. Transfer to live enterprise or government deployments is unproven.
+5. **No formal peer-review stamp yet** — Draft whitepaper is in-repo; external academic review and broader red-team of the metric are open workstreams. Early expert readers found the stack (DSPy + MIPROv2 + threat taxonomy) hard to evaluate in isolation — **public code is partly so people who live in this stack can poke holes**.
+6. **Phase D / full autonomy unfinished** — Phases A–C style infrastructure and runbooks exist; fully unsupervised closed-loop improvement is not claimed as done.
+7. **Service delivery is separate** — Running probe campaigns against client models and shipping assurance reports is operational work (described conceptually in the whitepaper), not what `pip install` automates today.
+
+If you only have time for one contribution: **hard negative and subtle-bias examples** that survive human review and improve test recall without hurting precision.
+
+---
 
 ## Quickstart
 
 ### Prerequisites
 
 - Python 3.10+
-- Anthropic API key (for compilation and R&D inference)
-- Ollama (optional — for local deployment validation with GPT-OSS-120)
+- API key for compilation / R&D inference (Anthropic by default in config)
+- Optional: [Ollama](https://ollama.com) for local deployment validation
 
 ### Install
 
 ```bash
-cd TSLITDSPY
-pip install dspy python-dotenv
+git clone https://github.com/sw30labs/tslit-dspy-ar.git
+cd tslit-dspy-ar
+python -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev]"
+# Optional: local agent loop dependencies
+pip install -e ".[agent]"
 ```
 
 ### Configure
 
-Create a `.env` file:
-
 ```bash
-# Anthropic API key (required for compilation and R&D inference)
-ANTHROPIC_API_KEY="sk-ant-..."
-
-# Optional: OpenAI key if using GPT models for compilation
-OPENAI_API_KEY="sk-..."
+cp .env.example .env
+# Set ANTHROPIC_API_KEY (and any other keys you use) in .env
 ```
 
-### 1. Evaluate Zero-Shot Baseline
-
-See how the pipeline performs without any prompt optimization:
+### 1. Evaluate zero-shot baseline
 
 ```bash
 python -m tslit_dspy.evaluate \
@@ -92,7 +154,7 @@ python -m tslit_dspy.evaluate \
     --model anthropic/claude-opus-4-6
 ```
 
-### 2. Compile Optimized Prompts
+### 2. Compile optimized prompts
 
 ```bash
 python -m tslit_dspy.optimize \
@@ -103,7 +165,7 @@ python -m tslit_dspy.optimize \
     --auto heavy
 ```
 
-### 3. Evaluate Optimized
+### 3. Evaluate optimized
 
 ```bash
 # R&D evaluation (cloud)
@@ -113,7 +175,7 @@ python -m tslit_dspy.evaluate \
     --output workspace/evaluation/optimized_eval.md \
     --model anthropic/claude-opus-4-6
 
-# Deployment validation (local, no adversary-model contamination)
+# Deployment validation (local open stack example)
 python -m tslit_dspy.evaluate \
     --test workspace/data/test.jsonl \
     --compiled workspace/compiled/tslit_analyzer_optimized.json \
@@ -121,60 +183,114 @@ python -m tslit_dspy.evaluate \
     --model ollama_chat/gpt-oss-120:bf16
 ```
 
-### 4. Run Inference
+### 4. Run inference on artifacts
 
 ```python
+from pathlib import Path
 from tslit_dspy.adapter import DSPyAnalyzerAdapter
 
 adapter = DSPyAnalyzerAdapter(
     compiled_model_path="workspace/compiled/tslit_analyzer_optimized.json",
 )
-
 report = adapter.analyze(artifacts_dir="artifacts/")
 report.save(Path("reports/dspy_analysis_report.txt"))
 ```
 
-## Project Structure
+Operational recipes (including Phase C augmentation / autoresearch) live in:
+
+- [docs/RUNBOOK.md](docs/RUNBOOK.md)
+- [docs/RUNBOOK_PHASE_C.md](docs/RUNBOOK_PHASE_C.md)
+
+---
+
+## Project structure
 
 ```
 tslit_dspy/              # Core DSPy pipeline package
-├── signatures.py        # DSPy Signature definitions (typed I/O contracts)
-├── modules.py           # TSLITAnalyzer module + ThinkingStrippedAdapter
-├── metrics.py           # Composite metric for MIPROv2 + evaluation helpers
-├── optimize.py          # MIPROv2 compilation script
-├── evaluate.py          # Test set evaluation + reporting
-├── adapter.py           # Drop-in replacement for tslit.analyzer.core
-└── schemas.py           # AnalysisResult + ThreatReport dataclasses
+├── signatures.py        # Typed I/O contracts
+├── modules.py           # TSLITAnalyzer + adapters
+├── metrics.py           # Composite metric for MIPROv2
+├── optimize.py          # Compilation entrypoint
+├── evaluate.py          # Evaluation + reporting
+├── adapter.py           # Drop-in analyzer adapter
+└── schemas.py           # AnalysisResult / ThreatReport
 
-workspace/               # Data, compiled models, evaluation output
-├── data/
-│   ├── train.jsonl      # 55 labeled examples (70%)
-│   ├── dev.jsonl        # 14 examples (15%)
-│   └── test.jsonl       # 17 examples (15%)
-├── compiled/            # MIPROv2 output (after compilation)
-└── evaluation/          # Baseline + optimized eval reports
+workspace/
+├── data/                # train / dev / test JSONL (+ augmentation draft)
+├── compiled/            # MIPROv2 JSON artifact
+└── evaluation/          # Local eval reports (gitignored)
 
-scripts/                 # Operational scripts
+scripts/
 ├── run_experiment.sh    # Autoresearch experiment runner
-└── agent_loop_mlx.py    # Autonomous research agent (local MLX)
+└── agent_loop_mlx.py    # Autonomous research agent (local / Ollama-friendly)
 
-config/                  # Configuration files
+config/
 ├── experiment_config.json
-└── tslit_program.md     # Core research program prompt for agent_loop_mlx
+└── tslit_program.md     # Research program prompt for the agent loop
 
-docs/                    # Project documentation
-├── elevator_pitch.md
-└── ROADMAP.md
-
-whitepaper/              # Academic paper
-
-CLAUDE.md                # Project context for AI assistants
+docs/                    # Elevator pitch, roadmap, runbooks
+whitepaper/              # Draft manuscript, figures, build scripts
 ```
+
+---
+
+## Contributing
+
+Contributions that help most right now:
+
+1. **Data** — subtle affiliation-bias and hard-negative `none` examples (JSONL schema as in `workspace/data/train.jsonl`); never silently edit `test.jsonl` in PRs that claim metric gains.
+2. **Metrics** — better evidence-grounding / risk calibration components; secondary filters for low-confidence “none” with elevated risk.
+3. **Compute-efficient self-improvement** — faster screening loops, cheaper mini-evals, robust guards so agents cannot poison the test set.
+4. **Tests & CI** — schema validation, metric unit tests, dry-run evaluate paths.
+5. **Paper clarity** — figure fixes, related-work citations, reproducible experiment tables.
+
+Please open an issue before large architectural rewrites. See [SECURITY.md](SECURITY.md) for vulnerability reporting and research ethics boundaries.
+
+---
+
+## Whitepaper
+
+Draft manuscript and figures:
+
+```bash
+cd whitepaper/
+make figures   # matplotlib figures
+make pdf       # requires latexmk / pdflatex
+```
+
+PDF (when built): `whitepaper/manuscript/tslit_dspy_whitepaper.pdf`. Formal arXiv / venue submission is **paper soon** relative to this code release.
+
+---
 
 ## Roadmap
 
-See [docs/ROADMAP.md](docs/ROADMAP.md) for the full roadmap.
+See [docs/ROADMAP.md](docs/ROADMAP.md) and [ToDo.md](ToDo.md) for near-term tracks (augmentation recompile, Phase C autoresearch, deployment validation).
+
+---
+
+## Citation
+
+Until the archival paper is out, cite the repository:
+
+```bibtex
+@software{cravino_tslit_dspy_2026,
+  author = {Cravino, Nicolas},
+  title  = {TSLIT-DSPy: DSPy-compiled integrity testing for open-weight LLMs},
+  year   = {2026},
+  version = {0.2.0},
+  url    = {https://github.com/sw30labs/tslit-dspy-ar},
+  note   = {Research release; whitepaper forthcoming}
+}
+```
+
+Predecessor probe harness: [TSLIT v0.1](https://github.com/sw30labs/tslit).
+
+---
 
 ## License
 
-Apache 2.0, consistent with [TSLIT](https://github.com/ai-agents-cybersecurity/TSLIT).
+[Apache License 2.0](LICENSE) — same family as [TSLIT](https://github.com/sw30labs/tslit).
+
+## Author
+
+Nicolas Cravino — cybersecurity practitioner and AI security researcher.

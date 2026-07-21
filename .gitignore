@@ -29,5 +29,27 @@ build/
 console.log
 scripts/*.log
 
-# Workspace outputs (keep compiled configs, ignore large data)
+# Workspace outputs (keep compiled configs + data; ignore eval reports)
 workspace/evaluation/
+
+# LaTeX / manuscript build artifacts
+whitepaper/manuscript/*.aux
+whitepaper/manuscript/*.bbl
+whitepaper/manuscript/*.blg
+whitepaper/manuscript/*.fdb_latexmk
+whitepaper/manuscript/*.fls
+whitepaper/manuscript/*.log
+whitepaper/manuscript/*.out
+whitepaper/manuscript/*.synctex.gz
+whitepaper/manuscript/*.toc
+whitepaper/manuscript/*.tmp
+whitepaper/manuscript/tmp*
+
+# Local arXiv / packaging dumps
+*.zip
+dist/
+arxiv_bundle/
+
+# Secrets / local overrides
+.env.*
+!.env.example
