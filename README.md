@@ -11,6 +11,8 @@
 
 **Version 0.2** · Transparent research release · [Apache 2.0](LICENSE)
 
+**DGX Spark runtime:** see sibling tree [`../tslit-dspy-dgx`](../tslit-dspy-dgx) — local vLLM with **NVIDIA Nemotron** as the detection brain (non-adversary / American models only; Qwen/DeepSeek are scan targets, not the analyzer).
+
 **Can you trust the AI model you just downloaded?**
 
 Open-weight LLMs are powerful — but anyone can tamper with them before you download them. A poisoned model might behave perfectly in testing, then quietly sabotage code for specific users or activate hidden backdoors on certain dates. TSLIT-DSPy is a security research tool that helps catch this class of behavior. It analyzes controlled probe responses — varying who is asking and when — with a compiled DSPy pipeline that classifies affiliation bias, temporal logic bombs, and combined threats.
