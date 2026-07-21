@@ -1,4 +1,13 @@
+<p align="center">
+  <img src="assets/tslit-dspy-icon.svg" alt="TSLIT-DSPy" width="112">
+</p>
+
 # TSLIT-DSPy
+
+**TSLIT** = **T**ime-**S**hift **L**LM **I**ntegrity **T**esting  
+**TSLIT-DSPy** = TSLIT with **DSPy**-powered analysis (this repository)
+
+**What’s new vs [TSLIT v0.1](https://github.com/sw30labs/tslit):** v0.1 ran probe campaigns and a LangGraph multi-agent analyzer; **v0.2 replaces that analyzer with a DSPy pipeline, MIPROv2 prompt compilation, and an autoresearch-style self-improvement loop — fighting AI with AI** (optimize the detector with models, not hand-tuned prompts alone).
 
 **Version 0.2** · Transparent research release · [Apache 2.0](LICENSE)
 
@@ -13,6 +22,14 @@ This repository is the **DSPy-powered analysis pipeline** that evolved from [TSL
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![Version](https://img.shields.io/badge/version-0.2.0-informational.svg)](pyproject.toml)
+[![DSPy](https://img.shields.io/badge/DSPy-powered-4B8BBE.svg)](https://github.com/stanfordnlp/dspy)
+[![MIPROv2](https://img.shields.io/badge/MIPROv2-compile-blueviolet.svg)](https://dspy.ai/)
+[![Autoresearch](https://img.shields.io/static/v1?label=Karpathy&message=autoresearch&color=orange)](https://github.com/karpathy/autoresearch)
+[![LangGraph](https://img.shields.io/badge/LangGraph-v0.1%20lineage-green.svg)](https://github.com/langchain-ai/langgraph)
+[![Ollama](https://img.shields.io/badge/Ollama-local%20optional-black.svg)](https://ollama.com)
+[![TSLIT](https://img.shields.io/badge/TSLIT-v0.1%20predecessor-informational.svg)](https://github.com/sw30labs/tslit)
+
+Stack notes: **DSPy / MIPROv2** power this repo’s analyzer. The outer improvement loop is **inspired by** [Karpathy’s autoresearch](https://github.com/karpathy/autoresearch) (adapted in `scripts/agent_loop_mlx.py`). **LangGraph** was the multi-agent analyzer in [TSLIT v0.1](https://github.com/sw30labs/tslit); **Ollama** is an optional local inference backend.
 
 ---
 
@@ -75,6 +92,36 @@ Strong model (compile) ──► optimized prompts (JSON) ──► Local model 
 ```
 
 **R&D practice used here:** compile with a strong cloud model, evaluate with a strong independent model, and validate deployment on a fully open local stack so adversary-origin models stay **scan targets**, not part of the detection brain. See [config/experiment_config.json](config/experiment_config.json).
+
+### Self-improvement (partial — not full autonomy)
+
+Detection quality can improve on two nested loops. **v0.2 ships the machinery for both; only the inner loop is proven end-to-end in the reported metrics.**
+
+| Loop | What it does | Status in this repo |
+|------|----------------|---------------------|
+| **Inner — MIPROv2 compile** | Bayesian prompt + few-shot optimization over the labeled set → portable JSON | **Done** for the March 2026 snapshot (`workspace/compiled/…`); re-run via `python -m tslit_dspy.optimize` |
+| **Outer — autoresearch** | Agent proposes data/config changes, runs experiment script, keeps gains if metrics improve | **Infrastructure present**, not claimed as a finished unattended product |
+
+**What exists today**
+
+- `scripts/run_experiment.sh` — optimize + evaluate wrapper; prints a parseable accuracy line; hash-guards the frozen test set
+- `scripts/agent_loop_mlx.py` — research agent with tool calls, command whitelist, branch isolation; works with local OpenAI-compatible servers (MLX or Ollama-style)
+- `config/tslit_program.md` — hypothesis ladder and locked-file rules for the agent
+- `--mini` screening path so cheap local checks can precede full recompiles
+
+**What is partial / not claimed**
+
+- No “set and forget” that autonomously reaches SOTA without human review
+- Outer-loop runs are **compute- and API-bound**; meaningful gains need GPU/API budget and operator oversight
+- Training augmentation for the affiliation-bias gap is **drafted**, not yet merged and recompiled (see Phase C)
+- Fully unsupervised closed-loop improvement (**Phase D**) is future work
+
+**How to run / extend**
+
+- Reproduce compile + eval: [docs/RUNBOOK.md](docs/RUNBOOK.md)
+- Augmentation + outer loop: [docs/RUNBOOK_PHASE_C.md](docs/RUNBOOK_PHASE_C.md)
+- Design notes and tradeoffs: [docs/ROADMAP.md](docs/ROADMAP.md)
+- Doc index (current vs historical metrics): [docs/README.md](docs/README.md)
 
 ---
 
@@ -196,7 +243,7 @@ report = adapter.analyze(artifacts_dir="artifacts/")
 report.save(Path("reports/dspy_analysis_report.txt"))
 ```
 
-Operational recipes (including Phase C augmentation / autoresearch) live in:
+Operational recipes (including Phase C augmentation / autoresearch) live in [docs/](docs/) — see [docs/README.md](docs/README.md) for an index and which metrics are current vs historical:
 
 - [docs/RUNBOOK.md](docs/RUNBOOK.md)
 - [docs/RUNBOOK_PHASE_C.md](docs/RUNBOOK_PHASE_C.md)
@@ -228,7 +275,7 @@ config/
 ├── experiment_config.json
 └── tslit_program.md     # Research program prompt for the agent loop
 
-docs/                    # Elevator pitch, roadmap, runbooks
+docs/                    # Index + pitch, roadmap, runbooks (see docs/README.md)
 whitepaper/              # Draft manuscript, figures, build scripts
 ```
 
