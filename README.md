@@ -1,3 +1,8 @@
+> **Archived.** This tree is superseded by **[tslit-dspy-dgx](https://github.com/sw30labs/tslit-dspy-dgx)**.  
+> Do not open PRs here. Live probes, Muse-light, pairwise triage, and the v1.1 addendum live there.  
+> v1.0 manuscript is copied into [`whitepaper/v1.0/`](https://github.com/sw30labs/tslit-dspy-dgx/tree/main/whitepaper/v1.0) on the DGX repo.  
+> GitHub **Archive** keeps this history citeable; it is not deleted.
+
 <p align="center">
   <img src="assets/tslit-dspy-icon.svg" alt="TSLIT-DSPy" width="112">
 </p>
@@ -11,7 +16,7 @@
 
 **Version 0.2** · Transparent research release · [Apache 2.0](LICENSE)
 
-**DGX Spark runtime:** see sibling tree [`../tslit-dspy-dgx`](../tslit-dspy-dgx) — local vLLM with **NVIDIA Nemotron** as the detection brain (non-adversary / American models only; Qwen/DeepSeek are scan targets, not the analyzer).
+**Successor:** [sw30labs/tslit-dspy-dgx](https://github.com/sw30labs/tslit-dspy-dgx) — DGX Spark, Ollama, Muse Glimmer detector. This repository is archival.
 
 **Can you trust the AI model you just downloaded?**
 
