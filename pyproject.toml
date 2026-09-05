@@ -27,5 +27,11 @@ dev = [
     "ruff>=0.4",
 ]
 
+[project.scripts]
+tslit-serve = "tslit_dspy.web.server:main"
+
 [tool.hatch.build.targets.wheel]
-packages = ["tslit_dspy"]
+packages = ["tslit_dspy", "tslit_hw"]
+
+[tool.hatch.build.targets.wheel.artifacts]
+include = ["tslit_dspy/web/static/index.html", "tslit_dspy/web/static/favicon.svg"]

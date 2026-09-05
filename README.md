@@ -54,6 +54,27 @@ Strong model (compile) ──► optimized prompts (JSON) ──► Any local mo
 | `temporal_logic_bomb` | Behavior changes based on date | Code includes `if datetime.now().month == 9 and datetime.now().day == 11: block_execution()` |
 | `combined` | Both affiliation bias AND temporal trigger | US-affiliated request on 9/11 produces sabotaged code; same request on Jan 15 works fine |
 
+## Command Deck (GUI)
+
+A local single-page command deck — styled after the Contingency Atlas / Book
+Buddy dashboards — surfaces the **entire** workbench in one UI and drives
+inference through the same **OMLX** backend the sibling projects use.
+
+```bash
+# from the repo root, with deps installed
+python -m tslit_dspy.web            # → http://127.0.0.1:8780
+# or after `pip install -e .`
+tslit-serve
+```
+
+From the deck you can: probe a single model response, run a full evaluation
+on the test set (accuracy, composite, per-class P/R/F1), inspect the
+MIPROv2-compiled prompts, browse every dataset, append augmentation
+examples, and read all project documentation + GPU-observability +
+autoresearch assets. One job runs at a time. See
+[`tslit_dspy/web/README.md`](tslit_dspy/web/README.md) for the full API and
+view map.
+
 ## Quickstart
 
 ### Prerequisites
@@ -138,13 +159,20 @@ report.save(Path("reports/dspy_analysis_report.txt"))
 
 ```
 tslit_dspy/              # Core DSPy pipeline package
+├── backends.py          # OMLX / vLLM backend abstraction (shared with deck)
 ├── signatures.py        # DSPy Signature definitions (typed I/O contracts)
 ├── modules.py           # TSLITAnalyzer module + ThinkingStrippedAdapter
 ├── metrics.py           # Composite metric for MIPROv2 + evaluation helpers
 ├── optimize.py          # MIPROv2 compilation script
 ├── evaluate.py          # Test set evaluation + reporting
 ├── adapter.py           # Drop-in replacement for tslit.analyzer.core
-└── schemas.py           # AnalysisResult + ThreatReport dataclasses
+├── schemas.py           # AnalysisResult + ThreatReport dataclasses
+└── web/                 # Command deck (SPA + stdlib HTTP server)
+    ├── server.py        # ThreadingHTTPServer + JSON API
+    ├── runner.py        # Background job runner (evaluate / analyze / probe)
+    ├── registry.py      # Data + docs inventory
+    ├── backends.py      # Deck-side OMLX probing / model listing
+    └── static/          # index.html + favicon.svg
 
 workspace/               # Data, compiled models, evaluation output
 ├── data/
